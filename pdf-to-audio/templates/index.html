@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF to Audio — Project Implementation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- Header -->
+  <header>
+    <span class="logo">📄➡️🔊</span>
+    <div>
+      <h1>PDF to Audio</h1>
+      <div class="subtitle">Powered by ElevenLabs AI — Ultra-realistic voices</div>
+    </div>
+    <div class="header-badge">Project Implementation</div>
+  </header>
+
+  <main>
+
+    <!-- Step 1: API Key -->
+    <div class="card" id="apikey-section">
+      <div class="card-title">🔑 Step 1 — ElevenLabs API Key</div>
+      <p class="card-desc">
+        Get your free API key at <a href="https://elevenlabs.io" target="_blank" class="link">elevenlabs.io</a>
+        — free tier includes 10,000 characters/month.
+      </p>
+      <div class="api-key-row">
+        <div class="input-wrapper">
+          <input
+            type="password"
+            id="api-key-input"
+            placeholder="Paste your ElevenLabs API key here..."
+            autocomplete="off"
+          />
+          <button class="toggle-visibility" id="toggle-key-vis" title="Show/Hide key">👁️</button>
+        </div>
+        <button class="btn btn-primary" id="validate-btn">Validate Key</button>
+      </div>
+      <p class="hint-text">Use your ElevenLabs API key from elevenlabs.io. ElevenLabs keys start with <code>sk_</code> — do not paste an OpenAI key (those start with <code>sk-</code> with a hyphen).</p>
+
+      <!-- Key status -->
+      <div class="key-status" id="key-status" style="display:none"></div>
+
+      <!-- Usage bar -->
+      <div class="usage-bar-wrap" id="usage-wrap" style="display:none">
+        <div class="usage-label">
+          <span>Characters used</span>
+          <span id="usage-text"></span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar usage-bar" id="usage-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Upload PDF -->
+    <div class="card" id="upload-section">
+      <div class="card-title">📂 Step 2 — Upload PDF</div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".pdf" />
+        <span class="upload-icon">📄</span>
+        <h2>Drop your PDF here</h2>
+        <p>or click to browse — max 50 MB</p>
+        <div class="file-info"></div>
+      </div>
+      <div class="pdf-info" id="pdf-info"></div>
+    </div>
+
+    <!-- Step 3: Voice Settings -->
+    <div class="card" id="settings-section">
+      <div class="card-title">🎙️ Step 3 — Voice Settings</div>
+      <div class="controls-grid">
+
+        <!-- Voice -->
+        <div class="control-group full-width">
+          <label>🗣️ Voice</label>
+          <div class="voice-select-row">
+            <select id="voice-select">
+              <option value="">— Validate API key to load voices —</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="preview-btn" disabled>▶ Preview</button>
+          </div>
+          <p class="hint-text" style="margin-top:0.4rem">
+            ℹ️ Only <strong>free-tier compatible voices</strong> are shown. Library/community voices require a paid ElevenLabs plan and are excluded to avoid conversion errors.
+          </p>
+        </div>
+
+        <!-- Model -->
+        <div class="control-group full-width">
+          <label>🤖 Model</label>
+          <select id="model-select">
+            <option value="eleven_multilingual_v2">Multilingual v2 — Best Quality (30+ languages)</option>
+            <option value="eleven_turbo_v2_5">Turbo v2.5 — Fast & Low Latency</option>
+          </select>
+        </div>
+
+        <!-- Stability -->
+        <div class="control-group">
+          <label>🎚️ Stability
+            <span class="label-hint">Low = expressive, High = consistent</span>
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="stability-slider" min="0" max="1" step="0.05" value="0.5" />
+            <span class="range-value" id="stability-val">0.50</span>
+          </div>
+        </div>
+
+        <!-- Similarity Boost -->
+        <div class="control-group">
+          <label>🎯 Clarity &amp; Similarity
+            <span class="label-hint">How closely to match the voice</span>
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="similarity-slider" min="0" max="1" step="0.05" value="0.75" />
+            <span class="range-value" id="similarity-val">0.75</span>
+          </div>
+        </div>
+
+        <!-- Style -->
+        <div class="control-group">
+          <label>🎨 Style Exaggeration
+            <span class="label-hint">0 = neutral, 1 = very expressive</span>
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="style-slider" min="0" max="1" step="0.05" value="0" />
+            <span class="range-value" id="style-val">0.00</span>
+          </div>
+        </div>
+
+        <!-- Speed (post-processing) -->
+        <div class="control-group">
+          <label>⚡ Speed
+            <span class="label-hint">Applied after generation</span>
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0" />
+            <span class="range-value" id="speed-val">1.0×</span>
+          </div>
+        </div>
+
+        <!-- Pitch (post-processing) -->
+        <div class="control-group">
+          <label>🎵 Pitch
+            <span class="label-hint">Applied after generation</span>
+          </label>
+          <div class="range-wrapper">
+            <input type="range" id="pitch-slider" min="-6" max="6" step="1" value="0" />
+            <span class="range-value" id="pitch-val">0 st</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Step 4: Chapter Selection -->
+    <div class="card" id="chapters-section">
+      <div class="card-title">📑 Step 4 — Chapter / Section</div>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem">
+        Select a specific section or convert the entire document.
+      </p>
+      <div id="chapters-loading" class="chapters-loading" style="display:none">
+        <span class="spinner spinner-dark"></span>
+        <span>Detecting sections… please wait</span>
+      </div>
+      <div id="chapters-empty" class="chapters-empty" style="display:none">
+        ⚠️ No sections detected — the full document will be converted.
+      </div>
+      <div class="chapter-list" id="chapter-list"></div>
+    </div>
+
+    <!-- Step 5: Convert -->
+    <div class="card" id="convert-section">
+      <div class="card-title">🚀 Step 5 — Convert</div>
+      <div class="convert-row" style="margin-bottom:1rem">
+        <button class="btn btn-primary btn-large" id="convert-btn" disabled>
+          🎙️ Convert to Audio
+        </button>
+        <span style="font-size:0.85rem; color:var(--text-muted)">
+          Conversion time depends on document length.
+        </span>
+      </div>
+      <div class="progress-section" id="progress-section">
+        <div class="progress-label">
+          <span id="progress-msg">Processing...</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio Player -->
+    <div class="card audio-player-section" id="audio-player-section">
+      <div class="card-title">🎧 Listen &amp; Download</div>
+      <div class="audio-player-card">
+        <div class="audio-title" id="audio-title">Generated Audio</div>
+        <div class="audio-duration" id="audio-duration"></div>
+        <audio id="audio-player" controls preload="metadata">
+          Your browser does not support audio playback.
+        </audio>
+        <div class="audio-actions">
+          <button class="btn btn-success" id="download-btn">⬇️ Download MP3</button>
+          <button class="btn btn-secondary" id="copy-link-btn">🔗 Copy Link</button>
+          <button class="btn btn-secondary" id="convert-again-btn">🔄 Convert Again</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    PDF to Audio &nbsp;·&nbsp; ElevenLabs AI TTS &nbsp;·&nbsp; Python + Flask &nbsp;·&nbsp; 🔊
+  </footer>
+
+</div>
+
+<div id="toast-container"></div>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
