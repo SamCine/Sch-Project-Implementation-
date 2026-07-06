@@ -277,7 +277,8 @@ class TTSEngine:
                     if chunk:
                         f.write(chunk)
         elif res.status_code == 401:
-            raise PermissionError("Invalid ElevenLabs API key. Please re-validate your key.")
+          logger.error("401 Response Body: %s", res.text)
+          raise PermissionError(f"401 Response: {res.text}")
         elif res.status_code == 402:
             raise RuntimeError(
                 "This voice requires a paid ElevenLabs plan. "

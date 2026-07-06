@@ -310,6 +310,10 @@ def _run_conversion(job_id, pdf_path, chapters_cache,
 
             update_job(job_id, progress=20, message="Converting full document to audio...")
 
+
+            logger.info(f"Text length: {len(full_text)}")
+            logger.info(f"First 200 characters: {repr(full_text[:200])}")
+
             raw_path = engine.synthesize(
                 text=full_text,
                 voice_id=voice_id,
@@ -379,6 +383,7 @@ def _run_conversion(job_id, pdf_path, chapters_cache,
             if not text.strip():
                 logger.warning(f"Chapter {i+1} has no text, skipping.")
                 continue
+            
 
             raw_path = engine.synthesize(
                 text=text,
@@ -447,7 +452,7 @@ def _run_conversion(job_id, pdf_path, chapters_cache,
             status="failed",
             error=str(e),
             message="Conversion failed."
-       )
+      )
     
 
 # ── Status / Serve / Download ─────────────
