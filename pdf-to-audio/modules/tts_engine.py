@@ -31,7 +31,7 @@ MODELS = {
     "eleven_turbo_v2_5":      "Turbo v2.5 (Fast, low latency)",
 }
 
-DEFAULT_MODEL = "eleven_multilingual_v2"
+DEFAULT_MODEL = "eleven_turbo_v2_5"
 
 
 class TTSEngine:

@@ -219,7 +219,7 @@ def convert_to_audio():
                 "output_path": None, "duration": None, "error": None,
             }
         voice_id         = data.get("voice_id",         "pNInz6obpgDQGcFmaJgB")
-        model_id         = data.get("model_id",         "eleven_multilingual_v2")
+        model_id         = data.get("model_id",         "eleven_turbo_v2_5")
         stability        = float(data.get("stability",        0.5))
         similarity_boost = float(data.get("similarity_boost", 0.75))
         style            = float(data.get("style",            0.0))
@@ -247,7 +247,7 @@ def convert_to_audio():
         return jsonify({"error": "file_id required."}), 400
 
     voice_id         = data.get("voice_id",         "pNInz6obpgDQGcFmaJgB")
-    model_id         = data.get("model_id",         "eleven_multilingual_v2")
+    model_id         = data.get("model_id",         "eleven_turbo_v2_5")
     stability        = float(data.get("stability",        0.5))
     similarity_boost = float(data.get("similarity_boost", 0.75))
     style            = float(data.get("style",            0.0))
@@ -441,9 +441,14 @@ def _run_conversion(job_id, pdf_path, chapters_cache,
         else:
             update_job(job_id, status="failed", error=err, message="Conversion failed.")
     except Exception as e:
-        logger.error(f"Job {job_id} failed: {e}", exc_info=True)
-        update_job(job_id, status="failed", error=str(e), message="Conversion failed.")
-
+        logger.exception(e)
+        update_job(
+            job_id,
+            status="failed",
+            error=str(e),
+            message="Conversion failed."
+       )
+    
 
 # ── Status / Serve / Download ─────────────
 @app.route("/api/job/<job_id>")
